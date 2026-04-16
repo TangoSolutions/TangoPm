@@ -1,0 +1,6 @@
+node_modules/
+.env
+dashboard/node_modules/
+dashboard/dist/
+*.log
+.DS_Store
