@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tino Automations — Agent Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --green:#1a3d2b;--green-mid:#2d5a3e;--green-light:#3d7a54;--green-pale:#e8f0eb;
+  --beige:#f5f0e8;--beige-mid:#ede5d8;--beige-dark:#d4c9b4;
+  --white:#ffffff;--off:#faf8f4;
+  --text:#1a1a18;--text-mid:#4a4a42;--text-muted:#8a8a7a;
+  --border:#ddd8cc;--border-light:#eee9df;
+  --gold:#c9a96e;--gold-light:#e8cc9a;
+  --red:#c0392b;--red-pale:#fdf0ee;
+  --amber:#d4860a;--amber-pale:#fef3e0;
+  --success:#2d7a4a;--success-pale:#e8f5ed;
+  --shadow:0 2px 12px rgba(26,61,43,.1);--shadow-lg:0 4px 24px rgba(26,61,43,.15);
+  --r:10px;--rl:16px;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--beige);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-weight:400;min-height:100vh;display:flex;}
+
+/* SIDEBAR */
+.sidebar{width:240px;background:var(--green);min-height:100vh;display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+.sidebar-logo{padding:1.5rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:.75rem;}
+.logo-icon{width:36px;height:36px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;color:var(--green);flex-shrink:0;}
+.logo-text{font-size:.95rem;font-weight:700;color:white;line-height:1.2;}
+.logo-sub{font-size:.68rem;color:rgba(255,255,255,.5);letter-spacing:.05em;}
+.sidebar-nav{flex:1;padding:1rem 0;}
+.nav-section{margin-bottom:1.5rem;}
+.nav-section-label{font-size:.65rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.35);padding:.5rem 1.25rem;margin-bottom:.25rem;}
+.nav-item{display:flex;align-items:center;gap:.75rem;padding:.65rem 1.25rem;color:rgba(255,255,255,.65);font-size:.855rem;font-weight:500;cursor:pointer;transition:all .2s;border-left:3px solid transparent;text-decoration:none;}
+.nav-item:hover{background:rgba(255,255,255,.08);color:white;}
+.nav-item.active{background:rgba(255,255,255,.12);color:white;border-left-color:var(--gold);}
+.nav-item .icon{font-size:1rem;width:18px;text-align:center;}
+.nav-badge{margin-left:auto;background:var(--gold);color:var(--green);font-size:.65rem;font-weight:700;padding:.15rem .5rem;border-radius:100px;}
+.sidebar-footer{padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,.1);font-size:.75rem;color:rgba(255,255,255,.4);}
+
+/* MAIN */
+.main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.topbar-title{font-size:1.05rem;font-weight:700;color:var(--text);}
+.topbar-sub{font-size:.78rem;color:var(--text-muted);margin-top:.1rem;}
+.topbar-right{display:flex;align-items:center;gap:1rem;}
+.topbar-agent{display:flex;align-items:center;gap:.6rem;}
+.agent-av{width:32px;height:32px;background:var(--green-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--green);}
+.agent-name{font-size:.82rem;font-weight:600;}
+
+.content{padding:2rem;flex:1;}
+
+/* PAGE SECTIONS */
+.page{display:none;}
+.page.active{display:block;}
+
+/* METRIC CARDS */
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:2rem;}
+.metric-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem 1.5rem;}
+.metric-card.green{background:var(--green);border-color:var(--green);}
+.metric-label{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:.5rem;}
+.metric-card.green .metric-label{color:rgba(255,255,255,.6);}
+.metric-val{font-size:2rem;font-weight:700;color:var(--green);line-height:1;}
+.metric-card.green .metric-val{color:var(--gold);}
+.metric-change{font-size:.75rem;color:var(--text-muted);margin-top:.35rem;}
+.metric-change.up{color:var(--success);}
+.metric-change.down{color:var(--red);}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.card-header{padding:1rem 1.5rem;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:.9rem;font-weight:700;}
+.card-body{padding:1.5rem;}
+
+/* GRID LAYOUTS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+.span-2{grid-column:span 2;}
+
+/* LEADS TABLE */
+.leads-filters{display:flex;gap:.75rem;padding:1rem 1.5rem;border-bottom:1px solid var(--border-light);flex-wrap:wrap;}
+.filter-btn{padding:.4rem .9rem;border-radius:100px;font-size:.78rem;font-weight:600;border:1.5px solid var(--border);background:transparent;cursor:pointer;color:var(--text-mid);transition:all .2s;}
+.filter-btn.active,.filter-btn:hover{border-color:var(--green);color:var(--green);background:var(--green-pale);}
+.leads-table{width:100%;border-collapse:collapse;}
+.leads-table th{text-align:left;padding:.75rem 1.5rem;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);border-bottom:1px solid var(--border-light);}
+.leads-table td{padding:.85rem 1.5rem;border-bottom:1px solid var(--border-light);font-size:.84rem;vertical-align:middle;}
+.leads-table tr:last-child td{border-bottom:none;}
+.leads-table tr:hover td{background:var(--off);}
+.score-pill{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;font-size:.8rem;font-weight:700;}
+.score-green{background:var(--success-pale);color:var(--success);}
+.score-amber{background:var(--amber-pale);color:var(--amber);}
+.score-red{background:var(--red-pale);color:var(--red);}
+.status-pill{display:inline-block;padding:.25rem .7rem;border-radius:100px;font-size:.72rem;font-weight:600;}
+.status-qualified{background:var(--success-pale);color:var(--success);}
+.status-unqualified{background:var(--red-pale);color:var(--red);}
+.status-borderline{background:var(--amber-pale);color:var(--amber);}
+.status-active{background:var(--green-pale);color:var(--green-mid);}
+.status-booked{background:#e8f0fb;color:#2855a0;}
+.lead-name{font-weight:600;}
+.lead-phone{font-size:.75rem;color:var(--text-muted);}
+.channel-icon{display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;color:var(--text-mid);}
+
+/* ANALYTICS CHARTS */
+.bar-chart{display:flex;flex-direction:column;gap:.75rem;}
+.bar-row{display:flex;align-items:center;gap.75rem;}
+.bar-label-left{font-size:.78rem;color:var(--text-mid);min-width:80px;}
+.bar-track{flex:1;height:8px;background:var(--beige-mid);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;background:var(--green-mid);border-radius:4px;transition:width .8s ease;}
+.bar-val{font-size:.75rem;font-weight:600;color:var(--green);min-width:36px;text-align:right;}
+.donut-wrap{display:flex;align-items:center;gap:2rem;}
+.donut-legend{display:flex;flex-direction:column;gap:.6rem;}
+.legend-item{display:flex;align-items:center;gap:.5rem;font-size:.8rem;}
+.legend-dot{width:10px;height:10px;border-radius:50%;}
+
+/* PIPELINE */
+.pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1.5rem;}
+.pipeline-stage{background:var(--white);padding:1.25rem;text-align:center;}
+.pipeline-stage:hover{background:var(--off);}
+.pipe-num{font-size:1.8rem;font-weight:700;color:var(--green);line-height:1;}
+.pipe-label{font-size:.72rem;color:var(--text-muted);margin-top:.3rem;font-weight:500;}
+.pipe-pct{font-size:.78rem;color:var(--text-muted);margin-top:.2rem;}
+
+/* MAINTENANCE */
+.maintenance-list{display:flex;flex-direction:column;gap:0;}
+.maint-item{padding:1rem 1.5rem;border-bottom:1px solid var(--border-light);display:flex;gap:1rem;align-items:flex-start;}
+.maint-item:last-child{border-bottom:none;}
+.urgency-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:.35rem;}
+.urg-high{background:var(--red);}
+.urg-medium{background:var(--amber);}
+.urg-low{background:var(--success);}
+.maint-content{flex:1;}
+.maint-prop{font-size:.82rem;font-weight:600;}
+.maint-desc{font-size:.8rem;color:var(--text-mid);margin-top:.2rem;}
+.maint-meta{font-size:.72rem;color:var(--text-muted);margin-top:.3rem;}
+.maint-status{margin-left:auto;}
+.status-open{background:var(--red-pale);color:var(--red);padding:.2rem .6rem;border-radius:100px;font-size:.7rem;font-weight:600;}
+.status-in-progress{background:var(--amber-pale);color:var(--amber);padding:.2rem .6rem;border-radius:100px;font-size:.7rem;font-weight:600;}
+.status-resolved{background:var(--success-pale);color:var(--success);padding:.2rem .6rem;border-radius:100px;font-size:.7rem;font-weight:600;}
+
+/* PROPERTIES */
+.prop-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;}
+.prop-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:box-shadow .2s;}
+.prop-card:hover{box-shadow:var(--shadow);}
+.prop-img{height:140px;background:linear-gradient(135deg,var(--green),var(--green-light));display:flex;align-items:center;justify-content:center;position:relative;}
+.prop-img-label{color:white;font-size:.85rem;font-weight:600;background:rgba(0,0,0,.2);padding:.4rem .8rem;border-radius:6px;}
+.prop-avail{position:absolute;top:.75rem;right:.75rem;font-size:.68rem;font-weight:700;padding:.25rem .6rem;border-radius:100px;}
+.avail-yes{background:var(--success-pale);color:var(--success);}
+.avail-no{background:var(--red-pale);color:var(--red);}
+.prop-body{padding:1rem;}
+.prop-title{font-size:.88rem;font-weight:700;margin-bottom:.2rem;}
+.prop-addr{font-size:.75rem;color:var(--text-muted);margin-bottom:.75rem;}
+.prop-meta{display:flex;justify-content:space-between;align-items:center;}
+.prop-rent{font-size:.9rem;font-weight:700;color:var(--green);}
+.prop-beds{font-size:.75rem;color:var(--text-muted);}
+
+/* SETTINGS */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.settings-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem;}
+.settings-card h3{font-size:.92rem;font-weight:700;margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid var(--border-light);}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:.75rem;font-weight:600;color:var(--text-mid);margin-bottom:.4rem;}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--off);border:1.5px solid var(--border);color:var(--text);padding:.65rem .9rem;border-radius:8px;font-family:inherit;font-size:.85rem;outline:none;transition:border-color .2s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--green);background:var(--white);}
+.form-group textarea{resize:vertical;min-height:80px;}
+.btn-save{background:var(--green);color:white;padding:.65rem 1.5rem;border-radius:8px;font-size:.85rem;font-weight:600;border:none;cursor:pointer;transition:background .2s;}
+.btn-save:hover{background:var(--green-mid);}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:.65rem 0;border-bottom:1px solid var(--border-light);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-info h4{font-size:.85rem;font-weight:600;}
+.toggle-info p{font-size:.75rem;color:var(--text-muted);}
+.toggle{width:44px;height:24px;background:var(--border);border-radius:12px;position:relative;cursor:pointer;transition:background .2s;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;background:white;border-radius:50%;top:3px;left:3px;transition:transform .2s;}
+.toggle.on::after{transform:translateX(20px);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.1rem;border-radius:8px;font-size:.82rem;font-weight:600;border:none;cursor:pointer;transition:all .2s;text-decoration:none;}
+.btn-primary{background:var(--green);color:white;}
+.btn-primary:hover{background:var(--green-mid);}
+.btn-ghost{background:transparent;color:var(--text-mid);border:1.5px solid var(--border);}
+.btn-ghost:hover{border-color:var(--green);color:var(--green);}
+.btn-sm{padding:.4rem .8rem;font-size:.75rem;}
+
+/* CONVERSATION DETAIL */
+.conv-layout{display:grid;grid-template-columns:1fr 360px;gap:1.5rem;}
+.chat-messages{display:flex;flex-direction:column;gap:.5rem;padding:1.25rem;max-height:480px;overflow-y:auto;}
+.chat-msg{max-width:75%;padding:.6rem .9rem;border-radius:10px;font-size:.82rem;line-height:1.5;}
+.chat-msg.tino{background:var(--green-pale);color:var(--text);align-self:flex-start;border-bottom-left-radius:3px;}
+.chat-msg.tenant{background:var(--green);color:white;align-self:flex-end;border-bottom-right-radius:3px;}
+.chat-time{font-size:.65rem;color:var(--text-muted);margin-top:.2rem;}
+.score-breakdown{background:var(--off);border-radius:var(--r);padding:1.25rem;}
+.score-big{font-size:3rem;font-weight:700;color:var(--green);line-height:1;text-align:center;margin-bottom:.5rem;}
+.score-status{text-align:center;margin-bottom:1.25rem;}
+.score-items{display:flex;flex-direction:column;gap:.5rem;}
+.score-item{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border-light);font-size:.8rem;}
+.score-item:last-child{border-bottom:none;}
+.score-item-val{font-weight:600;color:var(--success);}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--text-muted);}
+.empty-icon{font-size:3rem;margin-bottom:1rem;opacity:.4;}
+.empty-state h3{font-size:1rem;font-weight:600;margin-bottom:.5rem;color:var(--text-mid);}
+.empty-state p{font-size:.85rem;}
+
+/* PEAK HOURS GRID */
+.hours-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin-top:.75rem;}
+.hour-cell{height:28px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:rgba(255,255,255,.8);font-weight:600;cursor:default;}
+
+@media(max-width:1100px){.metrics-grid{grid-template-columns:repeat(2,1fr);}.prop-grid{grid-template-columns:repeat(2,1fr);}.grid-2{grid-template-columns:1fr;}}
+@media(max-width:768px){.sidebar{width:0;overflow:hidden;}.main{margin-left:0;}.topbar{padding:0 1rem;}.content{padding:1rem;}.metrics-grid{grid-template-columns:1fr 1fr;}.prop-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">T</div>
+    <div><div class="logo-text">Tino Automations</div><div class="logo-sub">Property Dashboard</div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Overview</div>
+      <a class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span> Dashboard</a>
+      <a class="nav-item" onclick="showPage('leads')"><span class="icon">👥</span> Leads <span class="nav-badge" id="leadsCount">0</span></a>
+      <a class="nav-item" onclick="showPage('viewings')"><span class="icon">📅</span> Viewings</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Management</div>
+      <a class="nav-item" onclick="showPage('properties')"><span class="icon">🏠</span> Properties</a>
+      <a class="nav-item" onclick="showPage('maintenance')"><span class="icon">🔧</span> Maintenance <span class="nav-badge" id="maintCount" style="background:#c0392b;color:white;">0</span></a>
+      <a class="nav-item" onclick="showPage('analytics')"><span class="icon">📈</span> Analytics</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Account</div>
+      <a class="nav-item" onclick="showPage('settings')"><span class="icon">⚙️</span> Settings & Training</a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">Tino v1.0 · Cape Town</div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="pageTitle">Dashboard</div>
+      <div class="topbar-sub" id="pageDate"></div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-primary btn-sm" onclick="showPage('leads')">+ Add Property</button>
+      <div class="topbar-agent">
+        <div class="agent-av" id="agentInitials">A</div>
+        <div class="agent-name" id="agentNameDisplay">Agent</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD PAGE -->
+    <div class="page active" id="page-dashboard">
+      <div class="metrics-grid">
+        <div class="metric-card green">
+          <div class="metric-label">This Month</div>
+          <div class="metric-val" id="m-enquiries">—</div>
+          <div class="metric-change">Total enquiries</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Qualified Leads</div>
+          <div class="metric-val" id="m-qualified">—</div>
+          <div class="metric-change up" id="m-qualrate">—% qualification rate</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Viewings Booked</div>
+          <div class="metric-val" id="m-viewings">—</div>
+          <div class="metric-change" id="m-conversion">of qualified leads</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Open Maintenance</div>
+          <div class="metric-val" id="m-maintenance">—</div>
+          <div class="metric-change down" id="m-high-maint">— high urgency</div>
+        </div>
+      </div>
+
+      <!-- Pipeline -->
+      <div class="pipeline" id="pipeline">
+        <div class="pipeline-stage"><div class="pipe-num" id="p-enquiries">—</div><div class="pipe-label">Enquiries</div><div class="pipe-pct">100%</div></div>
+        <div class="pipeline-stage"><div class="pipe-num" id="p-engaged">—</div><div class="pipe-label">Engaged</div><div class="pipe-pct" id="pp-engaged">—%</div></div>
+        <div class="pipeline-stage"><div class="pipe-num" id="p-scored">—</div><div class="pipe-label">Scored</div><div class="pipe-pct" id="pp-scored">—%</div></div>
+        <div class="pipeline-stage"><div class="pipe-num" id="p-qual">—</div><div class="pipe-label">Qualified</div><div class="pipe-pct" id="pp-qual">—%</div></div>
+        <div class="pipeline-stage"><div class="pipe-num" id="p-booked">—</div><div class="pipe-label">Booked</div><div class="pipe-pct" id="pp-booked">—%</div></div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Recent Leads -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Recent leads</div>
+            <button class="btn btn-ghost btn-sm" onclick="showPage('leads')">View all</button>
+          </div>
+          <table class="leads-table">
+            <thead><tr><th>Tenant</th><th>Property</th><th>Score</th><th>Status</th></tr></thead>
+            <tbody id="recentLeadsBody"><tr><td colspan="4"><div class="empty-state"><div class="empty-icon">👥</div><p>No leads yet</p></div></td></tr></tbody>
+          </table>
+        </div>
+        <!-- Maintenance alerts -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Maintenance alerts</div>
+            <button class="btn btn-ghost btn-sm" onclick="showPage('maintenance')">View all</button>
+          </div>
+          <div class="maintenance-list" id="dashMaintList"><div class="empty-state"><div class="empty-icon">🔧</div><p>No open issues</p></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEADS PAGE -->
+    <div class="page" id="page-leads">
+      <div class="card">
+        <div class="leads-filters">
+          <button class="filter-btn active" onclick="filterLeads('all',this)">All</button>
+          <button class="filter-btn" onclick="filterLeads('qualified',this)">Qualified</button>
+          <button class="filter-btn" onclick="filterLeads('borderline',this)">Borderline</button>
+          <button class="filter-btn" onclick="filterLeads('unqualified',this)">Unqualified</button>
+          <button class="filter-btn" onclick="filterLeads('booked',this)">Booked</button>
+          <button class="filter-btn" onclick="filterLeads('active',this)">Active</button>
+        </div>
+        <table class="leads-table">
+          <thead><tr><th>Tenant</th><th>Property</th><th>Channel</th><th>Income</th><th>Score</th><th>Status</th><th>Date</th><th></th></tr></thead>
+          <tbody id="allLeadsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIEWINGS PAGE -->
+    <div class="page" id="page-viewings">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Upcoming viewings</div></div>
+        <table class="leads-table">
+          <thead><tr><th>Tenant</th><th>Property</th><th>Date & Time</th><th>Score</th><th>Status</th></tr></thead>
+          <tbody id="viewingsBody"><tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📅</div><h3>No viewings scheduled</h3><p>Qualified leads will appear here once they book a viewing.</p></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PROPERTIES PAGE -->
+    <div class="page" id="page-properties">
+      <div class="prop-grid" id="propertiesGrid">
+        <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🏠</div><h3>No properties yet</h3><p>Properties will appear here once added via the API.</p></div>
+      </div>
+    </div>
+
+    <!-- MAINTENANCE PAGE -->
+    <div class="page" id="page-maintenance">
+      <div class="metrics-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="metric-card"><div class="metric-label">Open Issues</div><div class="metric-val" id="maint-open" style="color:var(--red)">—</div></div>
+        <div class="metric-card"><div class="metric-label">In Progress</div><div class="metric-val" id="maint-progress" style="color:var(--amber)">—</div></div>
+        <div class="metric-card green"><div class="metric-label">Resolved This Month</div><div class="metric-val" id="maint-resolved">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">All maintenance reports</div>
+          <div style="display:flex;gap:.5rem;">
+            <button class="filter-btn active" onclick="filterMaint('all',this)" style="font-size:.75rem;padding:.3rem .7rem;">All</button>
+            <button class="filter-btn" onclick="filterMaint('high',this)" style="font-size:.75rem;padding:.3rem .7rem;">High urgency</button>
+            <button class="filter-btn" onclick="filterMaint('open',this)" style="font-size:.75rem;padding:.3rem .7rem;">Open</button>
+          </div>
+        </div>
+        <div class="maintenance-list" id="maintList"><div class="empty-state"><div class="empty-icon">✅</div><h3>No maintenance issues</h3><p>Tenant reports via WhatsApp appear here automatically.</p></div></div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS PAGE -->
+    <div class="page" id="page-analytics">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Enquiries by day of week</div></div>
+          <div class="card-body">
+            <div class="bar-chart" id="dayChart"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Drop-off reasons</div></div>
+          <div class="card-body">
+            <div class="bar-chart" id="dropoffChart"></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Popular properties</div></div>
+          <div class="card-body">
+            <div class="bar-chart" id="propChart"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Peak enquiry hours</div></div>
+          <div class="card-body">
+            <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:.75rem;">Darker = more enquiries</div>
+            <div class="hours-grid" id="hoursGrid"></div>
+            <div style="display:flex;justify-content:space-between;margin-top:.5rem;font-size:.68rem;color:var(--text-muted);">
+              <span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Full pipeline conversion</div></div>
+        <div class="card-body">
+          <div class="pipeline" id="analyticsPipeline">
+            <div class="pipeline-stage"><div class="pipe-num" id="ap-1">—</div><div class="pipe-label">Enquiries</div></div>
+            <div class="pipeline-stage"><div class="pipe-num" id="ap-2">—</div><div class="pipe-label">Qualified</div></div>
+            <div class="pipeline-stage"><div class="pipe-num" id="ap-3">—</div><div class="pipe-label">Booked</div></div>
+            <div class="pipeline-stage"><div class="pipe-num" id="ap-4">—</div><div class="pipe-label">Avg Score</div></div>
+            <div class="pipeline-stage"><div class="pipe-num" id="ap-5">—</div><div class="pipe-label">Revenue</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="page-settings">
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3>Agency profile</h3>
+          <div class="form-group"><label>Agency name</label><input type="text" id="s-agency" placeholder="Cape Town Rentals"></div>
+          <div class="form-group"><label>Contact name</label><input type="text" id="s-name" placeholder="Jane Smith"></div>
+          <div class="form-group"><label>Notification WhatsApp</label><input type="tel" id="s-whatsapp" placeholder="+27 82 000 0000"></div>
+          <div class="form-group"><label>Email</label><input type="email" id="s-email" placeholder="jane@agency.co.za"></div>
+          <button class="btn-save">Save changes</button>
+        </div>
+        <div class="settings-card">
+          <h3>Tino's qualification rules</h3>
+          <div class="form-group"><label>Minimum income ratio (x rent)</label><input type="number" id="s-ratio" value="3.0" step="0.1" min="2" max="5"></div>
+          <div class="form-group"><label>Pet policy</label><select id="s-pets"><option>No pets allowed</option><option>Pets considered</option><option>Pets welcome</option></select></div>
+          <div class="form-group"><label>Tino's tone</label><select id="s-tone"><option>Warm and professional</option><option>Formal and corporate</option><option>Casual and friendly</option></select></div>
+          <div class="form-group"><label>Custom rules for Tino</label><textarea id="s-rules" placeholder="E.g. No students. Minimum 1 year lease. Require payslips for self-employed."></textarea></div>
+          <button class="btn-save">Save & retrain Tino</button>
+        </div>
+        <div class="settings-card">
+          <h3>Automation settings</h3>
+          <div class="toggle-row"><div class="toggle-info"><h4>Auto follow-ups</h4><p>Message cold leads after 24 hours</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="toggle-row"><div class="toggle-info"><h4>WhatsApp notifications</h4><p>Notify you on new qualified leads</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="toggle-row"><div class="toggle-info"><h4>Maintenance alerts</h4><p>Instant WhatsApp on high urgency</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="toggle-row"><div class="toggle-info"><h4>Weekly reports</h4><p>Performance summary every Monday</p></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+          <div class="toggle-row"><div class="toggle-info"><h4>Unqualified follow-up</h4><p>Message borderline leads with alternatives</p></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+        </div>
+        <div class="settings-card">
+          <h3>Integrations</h3>
+          <div class="toggle-row"><div class="toggle-info"><h4>Google Calendar</h4><p>Sync viewings automatically</p></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+          <div class="toggle-row"><div class="toggle-info"><h4>WhatsApp Business</h4><p>Live via Twilio</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="toggle-row"><div class="toggle-info"><h4>Voice calls</h4><p>Live via Twilio</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="toggle-row"><div class="toggle-info"><h4>Property24 feed</h4><p>Auto-import listings</p></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+          <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border-light);">
+            <div style="font-size:.8rem;font-weight:600;margin-bottom:.75rem;">Calendly booking link</div>
+            <input type="url" class="form-group input" style="width:100%;background:var(--off);border:1.5px solid var(--border);padding:.65rem .9rem;border-radius:8px;font-family:inherit;font-size:.82rem;outline:none;" placeholder="https://calendly.com/your-link">
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+const API = '';
+const KEY = new URLSearchParams(location.search).get('key') || localStorage.getItem('dashKey') || '';
+if (!KEY) {
+  const k = prompt('Enter your dashboard key:');
+  if (k) { localStorage.setItem('dashKey', k); location.reload(); }
+}
+
+const headers = { 'x-dashboard-key': KEY, 'Content-Type': 'application/json' };
+
+// ── PAGE NAVIGATION ──────────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => { if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active'); });
+  const titles = { dashboard: 'Dashboard', leads: 'All Leads', viewings: 'Viewings', properties: 'Properties', maintenance: 'Maintenance', analytics: 'Analytics', settings: 'Settings & Training' };
+  document.getElementById('pageTitle').textContent = titles[id] || id;
+  if (id === 'leads') loadLeads();
+  if (id === 'properties') loadProperties();
+  if (id === 'maintenance') loadMaintenance();
+  if (id === 'analytics') loadAnalytics();
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function scorePill(score) {
+  if (!score) return '<span style="color:var(--text-muted);font-size:.78rem;">—</span>';
+  const cls = score >= 70 ? 'score-green' : score >= 45 ? 'score-amber' : 'score-red';
+  return `<span class="score-pill ${cls}">${score}</span>`;
+}
+function statusPill(s) {
+  const map = { qualified: 'status-qualified', unqualified: 'status-unqualified', borderline: 'status-borderline', active: 'status-active', booked: 'status-booked' };
+  return `<span class="status-pill ${map[s]||'status-active'}">${s}</span>`;
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' });
+}
+function fmtRand(n) { return n ? 'R' + parseInt(n).toLocaleString() : '—'; }
+
+// ── LOAD DASHBOARD ────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const r = await fetch(`${API}/api/stats`, { headers });
+    if (!r.ok) return;
+    const data = await r.json();
+    const s = data.stats || {};
+    const leads = data.leads || [];
+
+    document.getElementById('agentInitials').textContent = 'A';
+    document.getElementById('pageDate').textContent = new Date().toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+    const total = parseInt(s.total_enquiries) || 0;
+    const qual = parseInt(s.qualified_leads) || 0;
+    const booked = parseInt(s.viewings_booked) || 0;
+
+    document.getElementById('m-enquiries').textContent = total;
+    document.getElementById('m-qualified').textContent = qual;
+    document.getElementById('m-viewings').textContent = booked;
+    document.getElementById('m-qualrate').textContent = total > 0 ? `${Math.round(qual/total*100)}% qualification rate` : '0% qualification rate';
+
+    document.getElementById('p-enquiries').textContent = total;
+    document.getElementById('p-engaged').textContent = Math.round(total * 0.7);
+    document.getElementById('p-scored').textContent = Math.round(total * 0.5);
+    document.getElementById('p-qual').textContent = qual;
+    document.getElementById('p-booked').textContent = booked;
+
+    document.getElementById('leadsCount').textContent = parseInt(s.active_conversations) || 0;
+
+    // Recent leads
+    const tbody = document.getElementById('recentLeadsBody');
+    const recent = leads.slice(0, 6);
+    if (recent.length) {
+      tbody.innerHTML = recent.map(l => `
+        <tr>
+          <td><div class="lead-name">${l.tenant_name || 'Unknown'}</div><div class="lead-phone">${l.tenant_phone}</div></td>
+          <td>${l.property_title || '—'}</td>
+          <td>${scorePill(l.qualification_score)}</td>
+          <td>${statusPill(l.status)}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Load maintenance for dashboard
+    loadMaintenanceDash();
+  } catch (e) { console.error('Dashboard load error:', e); }
+}
+
+async function loadMaintenanceDash() {
+  try {
+    const r = await fetch(`${API}/api/maintenance`, { headers });
+    if (!r.ok) return;
+    const items = await r.json();
+    const open = items.filter(i => i.status === 'open').slice(0, 4);
+    document.getElementById('m-maintenance').textContent = items.filter(i => i.status === 'open').length;
+    document.getElementById('m-high-maint').textContent = `${items.filter(i => i.urgency === 'high' && i.status === 'open').length} high urgency`;
+    document.getElementById('maintCount').textContent = items.filter(i => i.status === 'open').length;
+
+    const el = document.getElementById('dashMaintList');
+    if (open.length) {
+      el.innerHTML = open.map(m => `
+        <div class="maint-item">
+          <div class="urgency-dot urg-${m.urgency}"></div>
+          <div class="maint-content">
+            <div class="maint-prop">${m.property_title || 'Unknown property'}</div>
+            <div class="maint-desc">${m.issue_description}</div>
+            <div class="maint-meta">${m.tenant_phone} · ${fmtDate(m.created_at)}</div>
+          </div>
+          <div class="maint-status"><span class="status-${m.status.replace('_','-')}">${m.status}</span></div>
+        </div>
+      `).join('');
+    }
+  } catch {}
+}
+
+// ── LOAD LEADS ────────────────────────────────────────────────────────────────
+let allLeads = [];
+async function loadLeads() {
+  const r = await fetch(`${API}/api/stats`, { headers });
+  const data = await r.json();
+  allLeads = data.leads || [];
+  renderLeads(allLeads);
+}
+function renderLeads(leads) {
+  const tbody = document.getElementById('allLeadsBody');
+  if (!leads.length) { tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">👥</div><h3>No leads yet</h3><p>Tino will populate this as tenants start enquiring.</p></div></td></tr>'; return; }
+  tbody.innerHTML = leads.map(l => `
+    <tr>
+      <td><div class="lead-name">${l.tenant_name || 'Unknown'}</div><div class="lead-phone">${l.tenant_phone}</div></td>
+      <td>${l.property_title || '—'}<br><span style="font-size:.72rem;color:var(--text-muted)">${l.suburb || ''}</span></td>
+      <td><span class="channel-icon">${l.channel === 'whatsapp' ? '💬 WhatsApp' : '📞 Voice'}</span></td>
+      <td>${fmtRand(l.monthly_income)}</td>
+      <td>${scorePill(l.qualification_score)}</td>
+      <td>${statusPill(l.status)}</td>
+      <td>${fmtDate(l.created_at)}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="viewLead('${l.id}')">View</button></td>
+    </tr>
+  `).join('');
+}
+function filterLeads(status, btn) {
+  document.querySelectorAll('.leads-filters .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLeads(status === 'all' ? allLeads : allLeads.filter(l => l.status === status));
+}
+
+// ── LOAD PROPERTIES ───────────────────────────────────────────────────────────
+async function loadProperties() {
+  const r = await fetch(`${API}/api/properties`, { headers });
+  const props = await r.json();
+  const grid = document.getElementById('propertiesGrid');
+  if (!props.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🏠</div><h3>No properties added yet</h3></div>'; return; }
+  grid.innerHTML = props.map(p => `
+    <div class="prop-card">
+      <div class="prop-img">
+        <div class="prop-img-label">🏠 ${p.suburb || p.city}</div>
+        <span class="prop-avail ${p.is_available ? 'avail-yes' : 'avail-no'}">${p.is_available ? 'Available' : 'Let'}</span>
+      </div>
+      <div class="prop-body">
+        <div class="prop-title">${p.title}</div>
+        <div class="prop-addr">${p.address}</div>
+        <div class="prop-meta">
+          <div class="prop-rent">${fmtRand(p.monthly_rent)}/mo</div>
+          <div class="prop-beds">${p.bedrooms || '—'} bed · ${p.bathrooms || '—'} bath</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── LOAD MAINTENANCE ──────────────────────────────────────────────────────────
+let allMaint = [];
+async function loadMaintenance() {
+  try {
+    const r = await fetch(`${API}/api/maintenance`, { headers });
+    if (!r.ok) { renderMaintEmpty(); return; }
+    allMaint = await r.json();
+    document.getElementById('maint-open').textContent = allMaint.filter(m => m.status === 'open').length;
+    document.getElementById('maint-progress').textContent = allMaint.filter(m => m.status === 'in_progress').length;
+    document.getElementById('maint-resolved').textContent = allMaint.filter(m => m.status === 'resolved').length;
+    renderMaint(allMaint);
+  } catch { renderMaintEmpty(); }
+}
+function renderMaintEmpty() {
+  document.getElementById('maintList').innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><h3>No maintenance issues</h3><p>Tenant reports appear here automatically.</p></div>';
+}
+function renderMaint(items) {
+  const el = document.getElementById('maintList');
+  if (!items.length) { renderMaintEmpty(); return; }
+  el.innerHTML = items.map(m => `
+    <div class="maint-item">
+      <div class="urgency-dot urg-${m.urgency}"></div>
+      <div class="maint-content">
+        <div class="maint-prop">${m.property_title || 'Unknown property'}</div>
+        <div class="maint-desc">${m.issue_description}</div>
+        <div class="maint-meta">${m.tenant_phone} · ${fmtDate(m.created_at)} · Urgency: <strong>${m.urgency}</strong></div>
+      </div>
+      <div class="maint-status"><span class="status-${m.status === 'in_progress' ? 'in-progress' : m.status}">${m.status.replace('_',' ')}</span></div>
+    </div>
+  `).join('');
+}
+function filterMaint(filter, btn) {
+  document.querySelectorAll('.card-header .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (filter === 'all') renderMaint(allMaint);
+  else if (filter === 'high') renderMaint(allMaint.filter(m => m.urgency === 'high'));
+  else renderMaint(allMaint.filter(m => m.status === filter));
+}
+
+// ── LOAD ANALYTICS ────────────────────────────────────────────────────────────
+async function loadAnalytics() {
+  try {
+    const [statsR, revR] = await Promise.all([
+      fetch(`${API}/api/stats`, { headers }),
+      fetch(`${API}/api/revenue`, { headers }),
+    ]);
+    const statsData = await statsR.json();
+    const revData = revR.ok ? await revR.json() : {};
+    const s = statsData.stats || {};
+    const leads = statsData.leads || [];
+
+    const total = parseInt(s.total_enquiries) || 0;
+    const qual = parseInt(s.qualified_leads) || 0;
+    const booked = parseInt(s.viewings_booked) || 0;
+    const avgScore = parseInt(s.avg_score) || 0;
+
+    document.getElementById('ap-1').textContent = total;
+    document.getElementById('ap-2').textContent = qual;
+    document.getElementById('ap-3').textContent = booked;
+    document.getElementById('ap-4').textContent = avgScore;
+    document.getElementById('ap-5').textContent = fmtRand(revData.total_fees_earned);
+
+    // Day of week chart
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const dayCounts = new Array(7).fill(0);
+    leads.forEach(l => { const d = new Date(l.created_at).getDay(); dayCounts[d]++; });
+    const maxDay = Math.max(...dayCounts, 1);
+    document.getElementById('dayChart').innerHTML = days.map((d,i) => `
+      <div class="bar-row">
+        <span class="bar-label-left">${d}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(dayCounts[i]/maxDay*100)}%"></div></div>
+        <span class="bar-val">${dayCounts[i]}</span>
+      </div>
+    `).join('');
+
+    // Drop-off reasons
+    const unqual = leads.filter(l => l.status === 'unqualified');
+    const incomeIssue = unqual.filter(l => l.disqualification_reason?.includes('Income')).length;
+    const depositIssue = unqual.filter(l => l.disqualification_reason?.includes('Deposit')).length;
+    const timingIssue = unqual.filter(l => l.disqualification_reason?.includes('Move date')).length;
+    const empIssue = unqual.filter(l => l.disqualification_reason?.includes('Employment')).length;
+    const maxDrop = Math.max(incomeIssue, depositIssue, timingIssue, empIssue, 1);
+    document.getElementById('dropoffChart').innerHTML = [
+      ['Income too low', incomeIssue], ['Deposit not ready', depositIssue],
+      ['Move date mismatch', timingIssue], ['Employment unclear', empIssue],
+    ].map(([label, count]) => `
+      <div class="bar-row">
+        <span class="bar-label-left" style="min-width:120px;font-size:.75rem;">${label}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/maxDrop*100)}%"></div></div>
+        <span class="bar-val">${count}</span>
+      </div>
+    `).join('');
+
+    // Property chart
+    const propCounts = {};
+    leads.forEach(l => { if (l.property_title) propCounts[l.property_title] = (propCounts[l.property_title]||0)+1; });
+    const sortedProps = Object.entries(propCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const maxProp = Math.max(...sortedProps.map(p=>p[1]),1);
+    document.getElementById('propChart').innerHTML = sortedProps.length ? sortedProps.map(([title, count]) => `
+      <div class="bar-row">
+        <span class="bar-label-left" style="min-width:120px;font-size:.72rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${title.substring(0,18)}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/maxProp*100)}%"></div></div>
+        <span class="bar-val">${count}</span>
+      </div>
+    `).join('') : '<div class="empty-state"><p>No data yet</p></div>';
+
+    // Peak hours grid
+    const hourCounts = new Array(24).fill(0);
+    leads.forEach(l => { const h = new Date(l.created_at).getHours(); hourCounts[h]++; });
+    const maxHour = Math.max(...hourCounts, 1);
+    document.getElementById('hoursGrid').innerHTML = hourCounts.map((count, h) => {
+      const opacity = Math.round(count/maxHour*10)/10;
+      const bg = count === 0 ? 'var(--beige-mid)' : `rgba(45,90,62,${0.15 + opacity*0.85})`;
+      return `<div class="hour-cell" style="background:${bg}" title="${h}:00 — ${count} enquiries">${count||''}</div>`;
+    }).join('');
+
+  } catch (e) { console.error('Analytics error:', e); }
+}
+
+// ── VIEW LEAD ─────────────────────────────────────────────────────────────────
+async function viewLead(id) {
+  const r = await fetch(`${API}/api/leads/${id}`, { headers });
+  const lead = await r.json();
+  const msgs = lead.messages || [];
+  alert(`Lead: ${lead.tenant_name||lead.tenant_phone}\nProperty: ${lead.title||'Unknown'}\nIncome: ${fmtRand(lead.monthly_income)}\nScore: ${lead.qualification_score||'Pending'}\nStatus: ${lead.status}\n\nConversation: ${msgs.length} messages`);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+document.getElementById('pageDate').textContent = new Date().toLocaleDateString('en-ZA', { weekday:'long',day:'numeric',month:'long',year:'numeric' });
+loadDashboard();
+</script>
+</body>
+</html>
